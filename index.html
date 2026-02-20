@@ -114,7 +114,22 @@ const app = initializeApp(firebaseConfig);
 /* 🔹 4️⃣ AUTH VE DATABASE OLUŞTUR */
 const auth = getAuth(app);
 const db = getDatabase(app);
+// DOM
+const elCategoriesSection = document.getElementById("categoriesSection");
+const elTopicsSection = document.getElementById("topicsSection");
+const elTopicDetail = document.getElementById("topicDetail");
 
+const elCategoryTitle = document.getElementById("categoryTitle");
+const elTopicsList = document.getElementById("topicsList");
+
+const elDetailTitle = document.getElementById("detailTitle");
+const elDetailContent = document.getElementById("detailContent");
+const elReplies = document.getElementById("replies");
+
+// State
+let currentCategory = null;
+let currentTopicId = null;
+let topicsCache = {}; // 🔥 konuları burada tutacağız
 
 /* 🔹 5️⃣ AUTH UI KODLARI */
 let authMode = "login";
@@ -176,32 +191,54 @@ set(ref(db,"categories/tamirat"),{name:"Tamirat"});
 set(ref(db,"categories/kendinyap"),{name:"Kendin Yap"});
 
 /* Kategorileri Listele */
-onValue(ref(db,"categories"), snapshot=>{
-  const data = snapshot.val();
-  categories.innerHTML="";
-  for(let id in data){
-    categories.innerHTML+=`
-      <div class="card" onclick="openCategory('${id}','${data[id].name}')">
-        ${data[id].name}
+function renderTopics() {
+  elTopicsList.innerHTML = "";
+
+  const ids = Object.keys(topicsCache || {});
+  if (!currentCategory || ids.length === 0) return;
+
+  for (const id of ids) {
+    const t = topicsCache[id];
+    if (t.category !== currentCategory) continue;
+
+    elTopicsList.innerHTML += `
+      <div class="topic" data-id="${id}">
+        <strong>${t.title}</strong><br>
+        <small>${t.author}</small>
       </div>
     `;
   }
+}
+
+// 🔥 Her veri değiştiğinde cache güncellenir
+onValue(ref(db, "topics"), (snapshot) => {
+  topicsCache = snapshot.val() || {};
+  renderTopics(); // ekranda hangi kategori açıksa ona göre çiz
 });
 
-window.openCategory = function(id,name){
+// 🔥 Tıklamayı inline onclick yerine event delegation ile yakalayalım (daha sağlam)
+elTopicsList.addEventListener("click", (e) => {
+  const box = e.target.closest(".topic");
+  if (!box) return;
+  const id = box.getAttribute("data-id");
+  window.openTopic(id);
+});
 
-  if(!auth.currentUser){
+window.openCategory = function(id, name) {
+  if (!auth.currentUser) {
     alert("Kategoriyi görmek için giriş yapmalısın!");
     return;
   }
 
   currentCategory = id;
-  categoryTitle.innerText = name;
-  categoriesSection.classList.add("hidden");
-  topicsSection.classList.remove("hidden");
-};
+  elCategoryTitle.innerText = name;
 
-/* Konu oluştur */
+  elCategoriesSection.classList.add("hidden");
+  elTopicsSection.classList.remove("hidden");
+
+  renderTopics(); // 🔥 kategori değiştiği an listeyi yenile
+};
+  /* Konu oluştur */
 createTopic.onclick=()=>{
   if(!auth.currentUser) return alert("Giriş yapmalısın!");
 
