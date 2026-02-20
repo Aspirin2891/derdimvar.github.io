@@ -89,9 +89,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import { 
-  getDatabase 
+  getDatabase,
+  ref,
+  set,
+  onValue,
+  push
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
 
 /* 🔹 2️⃣ FIREBASE CONFIG */
 const firebaseConfig = {
@@ -269,13 +272,6 @@ window.backToTopics=function(){
   topicsSection.classList.remove("hidden");
 };
 
-onAuthStateChanged(auth,user=>{
-  if(user){
-    userArea.innerText=user.email;
-  }else{
-    userArea.innerText="Giriş yapılmadı";
-  }
-});
 </script>
 
 </body>
