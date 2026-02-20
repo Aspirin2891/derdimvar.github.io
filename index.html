@@ -6,132 +6,58 @@
 <title>Dertleş ve Derman Bul</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f6f9;
-}
-
-header {
-  background: linear-gradient(90deg, #ff7a00, #0066cc);
-  color: white;
-  padding: 25px;
-  text-align: center;
-}
-
-nav {
-  background: white;
-  padding: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-nav .menu a {
-  margin-right: 20px;
-  text-decoration: none;
-  color: #333;
-  font-weight: bold;
-}
-
-.container {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 20px;
-}
-
-.card {
-  background: white;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-input, textarea {
-  padding: 10px;
-  width: 250px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-textarea {
-  width: 100%;
-  height: 90px;
-}
-
-button {
-  background: #0066cc;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-button:hover {
-  background: #004999;
-}
-
-footer {
-  text-align: center;
-  padding: 20px;
-  color: gray;
-}
+body { font-family: Arial; margin:0; background:#f4f6f9; }
+header { background:linear-gradient(90deg,#ff7a00,#0066cc); color:white; padding:20px; text-align:center; }
+.container { max-width:1000px; margin:30px auto; padding:20px; }
+.card { background:white; padding:20px; margin-bottom:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
+input, textarea { width:100%; padding:10px; margin-bottom:10px; }
+button { padding:10px 15px; background:#0066cc; color:white; border:none; border-radius:6px; cursor:pointer; }
+button:hover { background:#004999; }
+.topic { cursor:pointer; padding:10px; border-bottom:1px solid #ddd; }
+.topic:hover { background:#f0f0f0; }
 </style>
-
 </head>
 <body>
 
 <header>
 <h1>Dertleş ve Derman Bul</h1>
-<p>Samimi • Güvenilir • Çözüm Odaklı</p>
 </header>
-
-<nav>
-<div class="menu">
-<a href="#">Dertleşme</a>
-<a href="#">Tamirat</a>
-<a href="#">Kendin Yap</a>
-</div>
-
-<div id="userArea">Giriş yapılmadı</div>
-</nav>
 
 <div class="container">
 
-<div class="card" id="authCard">
-<h2>Üyelik</h2>
-<input type="email" id="email" placeholder="E-posta"><br><br>
-<input type="password" id="password" placeholder="Şifre (min 6 karakter)"><br><br>
-<button id="registerBtn">Kayıt Ol</button>
-<button id="loginBtn">Giriş Yap</button>
-<button id="logoutBtn">Çıkış</button>
-<p id="status"></p>
+<div class="card">
+<h2>Yeni Konu Aç</h2>
+<input type="text" id="topicTitle" placeholder="Konu başlığı">
+<textarea id="topicContent" placeholder="Detaylı anlat..."></textarea>
+<button id="createTopic">Konu Oluştur</button>
 </div>
 
 <div class="card">
-<h2>💬 Dertleşme Alanı</h2>
-<textarea id="message" placeholder="İçini dök..."></textarea><br><br>
-<button id="sendBtn">Paylaş</button>
-<div id="messages" style="margin-top:20px;"></div>
+<h2>Konular</h2>
+<div id="topicsList"></div>
+</div>
+
+<div class="card" id="topicDetail" style="display:none;">
+<h2 id="detailTitle"></h2>
+<p id="detailContent"></p>
+
+<h3>Yanıtlar</h3>
+<div id="replies"></div>
+
+<textarea id="replyText" placeholder="Cevap yaz..."></textarea>
+<button id="sendReply">Yanıt Gönder</button>
 </div>
 
 </div>
-
-<footer>
-© 2026 DV Forum
-</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getDatabase, ref, push, onValue } 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAllhg1GM46bF9KKGv2t20uBb4xMSaEMnQ",
+  apiKey: "API_KEYİN",
   authDomain: "derdimvar-c0642.firebaseapp.com",
   databaseURL: "https://derdimvar-c0642-default-rtdb.europe-west1.firebasedatabase.app/",
   projectId: "derdimvar-c0642",
@@ -144,71 +70,92 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const status = document.getElementById("status");
+let currentTopicId = null;
 
-document.getElementById("registerBtn").addEventListener("click", () => {
-  createUserWithEmailAndPassword(auth, email.value, password.value)
-    .then(() => status.innerText = "Kayıt başarılı ✅")
-    .catch(error => status.innerText = error.message);
-});
-
-document.getElementById("loginBtn").addEventListener("click", () => {
-  signInWithEmailAndPassword(auth, email.value, password.value)
-    .then(() => status.innerText = "Giriş başarılı ✅")
-    .catch(error => status.innerText = error.message);
-});
-
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  signOut(auth);
-});
-
-document.getElementById("sendBtn").addEventListener("click", () => {
+document.getElementById("createTopic").addEventListener("click", () => {
   if (!auth.currentUser) {
     alert("Giriş yapmalısın!");
     return;
   }
 
-  if (message.value.trim() === "") {
-    alert("Boş mesaj gönderemezsin.");
+  const title = topicTitle.value;
+  const content = topicContent.value;
+
+  if (!title || !content) {
+    alert("Boş bırakma!");
     return;
   }
 
-  push(ref(db, "messages"), {
-    email: auth.currentUser.email,
-    text: message.value
+  push(ref(db, "topics"), {
+    title,
+    content,
+    author: auth.currentUser.email,
+    createdAt: Date.now()
   });
 
-  message.value = "";
+  topicTitle.value = "";
+  topicContent.value = "";
 });
 
-onValue(ref(db, "messages"), snapshot => {
+onValue(ref(db, "topics"), snapshot => {
   const data = snapshot.val();
-  const container = document.getElementById("messages");
-  container.innerHTML = "";
+  const list = document.getElementById("topicsList");
+  list.innerHTML = "";
+
   if (!data) return;
 
   for (let id in data) {
-    container.innerHTML += `
-      <div style="border-bottom:1px solid #ddd; padding:10px;">
-        <strong>${data[id].email}</strong><br>
-        ${data[id].text}
+    list.innerHTML += `
+      <div class="topic" onclick="openTopic('${id}')">
+        <strong>${data[id].title}</strong><br>
+        <small>${data[id].author}</small>
       </div>
     `;
   }
 });
 
-onAuthStateChanged(auth, user => {
-  const userArea = document.getElementById("userArea");
-  const authCard = document.getElementById("authCard");
+window.openTopic = function(id) {
+  currentTopicId = id;
+  const topicRef = ref(db, "topics/" + id);
 
-  if (user) {
-    userArea.innerHTML = user.email;
-    authCard.style.display = "none";
-  } else {
-    userArea.innerHTML = "Giriş yapılmadı";
-    authCard.style.display = "block";
+  onValue(topicRef, snapshot => {
+    const data = snapshot.val();
+    detailTitle.innerText = data.title;
+    detailContent.innerText = data.content;
+
+    replies.innerHTML = "";
+
+    if (data.replies) {
+      for (let rid in data.replies) {
+        replies.innerHTML += `
+          <div style="border-bottom:1px solid #ddd; padding:5px;">
+            <strong>${data.replies[rid].author}</strong><br>
+            ${data.replies[rid].text}
+          </div>
+        `;
+      }
+    }
+
+    topicDetail.style.display = "block";
+  });
+}
+
+document.getElementById("sendReply").addEventListener("click", () => {
+  if (!auth.currentUser) {
+    alert("Giriş yapmalısın!");
+    return;
   }
+
+  if (!currentTopicId) return;
+
+  push(ref(db, "topics/" + currentTopicId + "/replies"), {
+    text: replyText.value,
+    author: auth.currentUser.email
+  });
+
+  replyText.value = "";
 });
+
 </script>
 
 </body>
