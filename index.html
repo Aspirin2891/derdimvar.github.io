@@ -77,7 +77,6 @@ input,textarea{ width:100%; padding:10px; margin-bottom:10px; border-radius:8px;
 
 <script type="module">
 
-}
 /* 🔹 1️⃣ TÜM IMPORTLAR EN ÜSTTE */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
@@ -189,9 +188,15 @@ onValue(ref(db,"categories"), snapshot=>{
   }
 });
 
-window.openCategory=function(id,name){
-  currentCategory=id;
-  categoryTitle.innerText=name;
+window.openCategory = function(id,name){
+
+  if(!auth.currentUser){
+    alert("Kategoriyi görmek için giriş yapmalısın!");
+    return;
+  }
+
+  currentCategory = id;
+  categoryTitle.innerText = name;
   categoriesSection.classList.add("hidden");
   topicsSection.classList.remove("hidden");
 };
@@ -252,11 +257,13 @@ window.openTopic=function(id){
   });
 };
 
-sendReply.onclick=()=>{
+sendReply.onclick = () => {
+
   if(!auth.currentUser){
-  alert("Konu görmek için giriş yapmalısın");
-  return;
-    
+    alert("Yanıt yazmak için giriş yapmalısın!");
+    return;
+  }
+
   push(ref(db,"topics/"+currentTopicId+"/replies"),{
     text: replyText.value,
     author: auth.currentUser.email
