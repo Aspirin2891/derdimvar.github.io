@@ -1,66 +1,214 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>DerdimVar</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dertleş ve Derman Bul</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
+}
+
+header {
+  background: linear-gradient(90deg, #ff7a00, #0066cc);
+  color: white;
+  padding: 25px;
+  text-align: center;
+}
+
+nav {
+  background: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+nav .menu a {
+  margin-right: 20px;
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+input, textarea {
+  padding: 10px;
+  width: 250px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+textarea {
+  width: 100%;
+  height: 90px;
+}
+
+button {
+  background: #0066cc;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button:hover {
+  background: #004999;
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  color: gray;
+}
+</style>
+
 </head>
 <body>
 
-<h2>Kayıt / Giriş</h2>
+<header>
+<h1>Dertleş ve Derman Bul</h1>
+<p>Samimi • Güvenilir • Çözüm Odaklı</p>
+</header>
 
-<input type="email" id="email" placeholder="Email">
-<br><br>
-<input type="password" id="password" placeholder="Şifre">
-<br><br>
+<nav>
+<div class="menu">
+<a href="#">Dertleşme</a>
+<a href="#">Tamirat</a>
+<a href="#">Kendin Yap</a>
+</div>
 
+<div id="userArea">Giriş yapılmadı</div>
+</nav>
+
+<div class="container">
+
+<div class="card" id="authCard">
+<h2>Üyelik</h2>
+<input type="email" id="email" placeholder="E-posta"><br><br>
+<input type="password" id="password" placeholder="Şifre (min 6 karakter)"><br><br>
 <button id="registerBtn">Kayıt Ol</button>
 <button id="loginBtn">Giriş Yap</button>
-
+<button id="logoutBtn">Çıkış</button>
 <p id="status"></p>
+</div>
+
+<div class="card">
+<h2>💬 Dertleşme Alanı</h2>
+<textarea id="message" placeholder="İçini dök..."></textarea><br><br>
+<button id="sendBtn">Paylaş</button>
+<div id="messages" style="margin-top:20px;"></div>
+</div>
+
+</div>
+
+<footer>
+© 2026 DV Forum
+</footer>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, push, onValue } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAllhg1GM46bF9KKGv2t20uBb4xMSaEMnQ",
   authDomain: "derdimvar-c0642.firebaseapp.com",
+  databaseURL: "https://derdimvar-c0642-default-rtdb.europe-west1.firebasedatabase.app/",
   projectId: "derdimvar-c0642",
   storageBucket: "derdimvar-c0642.appspot.com",
   messagingSenderId: "113627224046",
-  appId: "1:113627224046:web:1aae2416c21916d1b560ff",
-  measurementId: "G-0L4L6Q8KGH"
+  appId: "1:113627224046:web:1aae2416c21916d1b560ff"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getDatabase(app);
 
-const email = document.getElementById("email");
-const password = document.getElementById("password");
 const status = document.getElementById("status");
 
 document.getElementById("registerBtn").addEventListener("click", () => {
   createUserWithEmailAndPassword(auth, email.value, password.value)
-    .then(() => {
-      status.innerText = "Kayıt başarılı ✅";
-    })
-    .catch((error) => {
-      status.innerText = error.message;
-    });
+    .then(() => status.innerText = "Kayıt başarılı ✅")
+    .catch(error => status.innerText = error.message);
 });
 
 document.getElementById("loginBtn").addEventListener("click", () => {
   signInWithEmailAndPassword(auth, email.value, password.value)
-    .then(() => {
-      status.innerText = "Giriş başarılı ✅";
-    })
-    .catch((error) => {
-      status.innerText = error.message;
-    });
+    .then(() => status.innerText = "Giriş başarılı ✅")
+    .catch(error => status.innerText = error.message);
 });
 
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  signOut(auth);
+});
+
+document.getElementById("sendBtn").addEventListener("click", () => {
+  if (!auth.currentUser) {
+    alert("Giriş yapmalısın!");
+    return;
+  }
+
+  if (message.value.trim() === "") {
+    alert("Boş mesaj gönderemezsin.");
+    return;
+  }
+
+  push(ref(db, "messages"), {
+    email: auth.currentUser.email,
+    text: message.value
+  });
+
+  message.value = "";
+});
+
+onValue(ref(db, "messages"), snapshot => {
+  const data = snapshot.val();
+  const container = document.getElementById("messages");
+  container.innerHTML = "";
+  if (!data) return;
+
+  for (let id in data) {
+    container.innerHTML += `
+      <div style="border-bottom:1px solid #ddd; padding:10px;">
+        <strong>${data[id].email}</strong><br>
+        ${data[id].text}
+      </div>
+    `;
+  }
+});
+
+onAuthStateChanged(auth, user => {
+  const userArea = document.getElementById("userArea");
+  const authCard = document.getElementById("authCard");
+
+  if (user) {
+    userArea.innerHTML = user.email;
+    authCard.style.display = "none";
+  } else {
+    userArea.innerHTML = "Giriş yapılmadı";
+    authCard.style.display = "block";
+  }
+});
 </script>
 
 </body>
