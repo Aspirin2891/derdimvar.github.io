@@ -28,11 +28,20 @@ input,textarea{ width:100%; padding:10px; margin-bottom:10px; border-radius:8px;
 </header>
 
 <nav>
-<div id="userArea">Giriş yapılmadı</div>
+  <div id="userArea"></div>
+  <div id="authButtons">
+    <button onclick="showLogin()">Giriş</button>
+    <button onclick="showRegister()">Kayıt Ol</button>
+  </div>
 </nav>
 
 <div class="container">
-
+<div id="authBox" class="card hidden">
+  <h3 id="authTitle">Giriş Yap</h3>
+  <input type="email" id="authEmail" placeholder="Email">
+  <input type="password" id="authPassword" placeholder="Şifre">
+  <button id="authAction">Devam Et</button>
+</div>
 <div id="categoriesSection">
 <h2>Kategoriler</h2>
 <div id="categories"></div>
@@ -67,10 +76,65 @@ input,textarea{ width:100%; padding:10px; margin-bottom:10px; border-radius:8px;
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+let authMode = "login";
 
+window.showLogin = function(){
+  authMode = "login";
+  authTitle.innerText = "Giriş Yap";
+  authBox.classList.remove("hidden");
+};
+
+window.showRegister = function(){
+  authMode = "register";
+  authTitle.innerText = "Kayıt Ol";
+  authBox.classList.remove("hidden");
+};
+
+authAction.onclick = async () => {
+  const email = authEmail.value;
+  const password = authPassword.value;
+
+  try{
+    if(authMode === "login"){
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("Giriş başarılı!");
+    } else {
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("Kayıt başarılı!");
+    }
+
+    authBox.classList.add("hidden");
+    authEmail.value="";
+    authPassword.value="";
+  }catch(error){
+    alert("Hata: " + error.message);
+  }
+};
+
+onAuthStateChanged(auth, user => {
+  if(user){
+    userArea.innerHTML = `
+      ${user.email}
+      <button onclick="logout()">Çıkış</button>
+    `;
+    authButtons.style.display="none";
+  }else{
+    userArea.innerText="Giriş yapılmadı";
+    authButtons.style.display="block";
+  }
+});
+
+window.logout = async function(){
+  await signOut(auth);
+  alert("Çıkış yapıldı");
+};
 const firebaseConfig = {
   apiKey: "AIzaSyAllhg1GM46bF9KKGv2t20uBb4xMSaEMnQ",
   authDomain: "derdimvar-c0642.firebaseapp.com",
