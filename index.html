@@ -6,133 +6,54 @@
 <title>Dertleş ve Derman Bul</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f6f9;
-}
-
-header {
-  background: linear-gradient(90deg, #ff7a00, #0066cc);
-  color: white;
-  padding: 25px;
-  text-align: center;
-}
-
-nav {
-  background: white;
-  padding: 15px 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-nav .menu a {
-  margin-right: 20px;
-  text-decoration: none;
-  color: #333;
-  font-weight: bold;
-}
-
-.container {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 20px;
-}
-
-.card {
-  background: white;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-input, textarea {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-button {
-  background: #0066cc;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #004999;
-}
-
-.topic {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-}
-
-.topic:hover {
-  background: #f2f2f2;
-}
-
-.reply {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-}
-
-footer {
-  text-align: center;
-  padding: 20px;
-  color: gray;
-}
+body { margin:0; font-family:Arial; background:#f4f6f9; }
+header { background:linear-gradient(90deg,#ff7a00,#0066cc); color:white; padding:25px; text-align:center; }
+nav { background:white; padding:15px 30px; display:flex; justify-content:space-between; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.container { max-width:1000px; margin:30px auto; padding:20px; }
+.card { background:white; padding:20px; margin-bottom:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); cursor:pointer;}
+.card:hover { background:#f2f2f2; }
+button { background:#0066cc; color:white; padding:10px 15px; border:none; border-radius:6px; cursor:pointer;}
+button:hover{ background:#004999;}
+input,textarea{ width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;}
+.topic{ padding:10px; border-bottom:1px solid #eee; cursor:pointer;}
+.topic:hover{ background:#f2f2f2;}
+.reply{ padding:8px; border-bottom:1px solid #eee;}
+.hidden{ display:none;}
 </style>
 </head>
 <body>
 
 <header>
 <h1>Dertleş ve Derman Bul</h1>
-<p>Samimi • Güvenilir • Çözüm Odaklı</p>
 </header>
 
 <nav>
-<div class="menu">
-<a href="#">Dertleşme</a>
-<a href="#">Tamirat</a>
-<a href="#">Kendin Yap</a>
-</div>
 <div id="userArea">Giriş yapılmadı</div>
 </nav>
 
 <div class="container">
 
-<div class="card" id="authCard">
-<h2>Üyelik</h2>
-<input type="email" id="email" placeholder="E-posta">
-<input type="password" id="password" placeholder="Şifre (min 6 karakter)">
-<button id="registerBtn">Kayıt Ol</button>
-<button id="loginBtn">Giriş Yap</button>
-<button id="logoutBtn">Çıkış</button>
-<p id="status"></p>
+<div id="categoriesSection">
+<h2>Kategoriler</h2>
+<div id="categories"></div>
 </div>
 
-<div class="card">
-<h2>Yeni Konu Aç</h2>
+<div id="topicsSection" class="hidden">
+<button onclick="goBack()">← Geri</button>
+<h2 id="categoryTitle"></h2>
+
+<div id="topicsList"></div>
+
+<div id="createTopicBox" style="margin-top:20px;">
+<h3>Yeni Konu Aç</h3>
 <input type="text" id="topicTitle" placeholder="Konu başlığı">
 <textarea id="topicContent" placeholder="Detaylı anlat..."></textarea>
 <button id="createTopic">Konu Oluştur</button>
 </div>
-
-<div class="card">
-<h2>Konular</h2>
-<div id="topicsList"></div>
 </div>
 
-<div class="card" id="topicDetail" style="display:none;">
+<div id="topicDetail" class="hidden">
+<button onclick="backToTopics()">← Geri</button>
 <h2 id="detailTitle"></h2>
 <p id="detailContent"></p>
 
@@ -145,16 +66,10 @@ footer {
 
 </div>
 
-<footer>
-© 2026 DV Forum
-</footer>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, push, onValue } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAllhg1GM46bF9KKGv2t20uBb4xMSaEMnQ",
@@ -170,70 +85,77 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+let currentCategory = null;
 let currentTopicId = null;
 
-registerBtn.onclick = () => {
-  createUserWithEmailAndPassword(auth, email.value, password.value)
-  .then(() => status.innerText = "Kayıt başarılı ✅")
-  .catch(e => status.innerText = e.message);
-};
+/* İlk açılışta kategorileri oluştur */
+set(ref(db,"categories/dertlesme"),{name:"Dertleşme"});
+set(ref(db,"categories/tamirat"),{name:"Tamirat"});
+set(ref(db,"categories/kendinyap"),{name:"Kendin Yap"});
 
-loginBtn.onclick = () => {
-  signInWithEmailAndPassword(auth, email.value, password.value)
-  .then(() => status.innerText = "Giriş başarılı ✅")
-  .catch(e => status.innerText = e.message);
-};
-
-logoutBtn.onclick = () => signOut(auth);
-
-onAuthStateChanged(auth, user => {
-  if(user){
-    userArea.innerText = user.email;
-    authCard.style.display = "none";
-  } else {
-    userArea.innerText = "Giriş yapılmadı";
-    authCard.style.display = "block";
+/* Kategorileri Listele */
+onValue(ref(db,"categories"), snapshot=>{
+  const data = snapshot.val();
+  categories.innerHTML="";
+  for(let id in data){
+    categories.innerHTML+=`
+      <div class="card" onclick="openCategory('${id}','${data[id].name}')">
+        ${data[id].name}
+      </div>
+    `;
   }
 });
 
-createTopic.onclick = () => {
+window.openCategory=function(id,name){
+  currentCategory=id;
+  categoryTitle.innerText=name;
+  categoriesSection.classList.add("hidden");
+  topicsSection.classList.remove("hidden");
+};
+
+/* Konu oluştur */
+createTopic.onclick=()=>{
   if(!auth.currentUser) return alert("Giriş yapmalısın!");
 
   push(ref(db,"topics"),{
+    category: currentCategory,
     title: topicTitle.value,
     content: topicContent.value,
-    author: auth.currentUser.email,
-    createdAt: Date.now()
+    author: auth.currentUser.email
   });
 
   topicTitle.value="";
   topicContent.value="";
 };
 
+/* Konuları Listele */
 onValue(ref(db,"topics"), snapshot=>{
   const data = snapshot.val();
   topicsList.innerHTML="";
   if(!data) return;
 
   for(let id in data){
-    topicsList.innerHTML += `
-      <div class="topic" onclick="openTopic('${id}')">
-        <strong>${data[id].title}</strong><br>
-        <small>${data[id].author}</small>
-      </div>
-    `;
+    if(data[id].category===currentCategory){
+      topicsList.innerHTML+=`
+        <div class="topic" onclick="openTopic('${id}')">
+          <strong>${data[id].title}</strong><br>
+          <small>${data[id].author}</small>
+        </div>
+      `;
+    }
   }
 });
 
-window.openTopic = function(id){
-  currentTopicId = id;
+window.openTopic=function(id){
+  currentTopicId=id;
+  topicsSection.classList.add("hidden");
+  topicDetail.classList.remove("hidden");
 
   onValue(ref(db,"topics/"+id), snapshot=>{
-    const data = snapshot.val();
+    const data=snapshot.val();
     detailTitle.innerText=data.title;
     detailContent.innerText=data.content;
     replies.innerHTML="";
-
     if(data.replies){
       for(let r in data.replies){
         replies.innerHTML+=`
@@ -244,12 +166,10 @@ window.openTopic = function(id){
         `;
       }
     }
-
-    topicDetail.style.display="block";
   });
 };
 
-sendReply.onclick = ()=>{
+sendReply.onclick=()=>{
   if(!auth.currentUser) return alert("Giriş yapmalısın!");
 
   push(ref(db,"topics/"+currentTopicId+"/replies"),{
@@ -259,6 +179,24 @@ sendReply.onclick = ()=>{
 
   replyText.value="";
 };
+
+window.goBack=function(){
+  topicsSection.classList.add("hidden");
+  categoriesSection.classList.remove("hidden");
+};
+
+window.backToTopics=function(){
+  topicDetail.classList.add("hidden");
+  topicsSection.classList.remove("hidden");
+};
+
+onAuthStateChanged(auth,user=>{
+  if(user){
+    userArea.innerText=user.email;
+  }else{
+    userArea.innerText="Giriş yapılmadı";
+  }
+});
 </script>
 
 </body>
