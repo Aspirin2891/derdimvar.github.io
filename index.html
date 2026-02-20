@@ -83,11 +83,15 @@ footer {
 <a href="#">Dertleşme</a>
 <a href="#">Tamirat & Tadilat</a>
 <a href="#">Kendin Yap</a>
+
+<div style="margin-left:auto; font-weight:bold;" id="userArea">
+Giriş yapılmadı
+</div>
 </nav>
 
 <div class="container">
 
-<div class="card">
+<div class="card" id="authCard">
 <h2>Üyelik</h2>
 <input type="email" id="email" placeholder="E-posta"><br><br>
 <input type="password" id="password" placeholder="Şifre"><br><br>
@@ -182,6 +186,21 @@ onValue(ref(db, "messages"), (snapshot) => {
         ${data[id].text}
       </div>
     `;
+  }
+});
+  onAuthStateChanged(auth, (user) => {
+  const userArea = document.getElementById("userArea");
+  const authCard = document.getElementById("authCard");
+
+  if (user) {
+    userArea.innerHTML = `
+      ${user.email} 
+      <button onclick="logout()" style="margin-left:10px;">Çıkış</button>
+    `;
+    authCard.style.display = "none";
+  } else {
+    userArea.innerHTML = "Giriş yapılmadı";
+    authCard.style.display = "block";
   }
 });
 </script>
