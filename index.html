@@ -108,10 +108,7 @@ const firebaseConfig = {
   appId: "1:113627224046:web:1aae2416c21916d1b560ff"
 };
 
- if(!auth.currentUser){
-  alert("Konu görmek için giriş yapmalısın");
-  return;
-  
+ 
 /* 🔹 3️⃣ APP BAŞLAT */
 const app = initializeApp(firebaseConfig);
 
@@ -256,8 +253,10 @@ window.openTopic=function(id){
 };
 
 sendReply.onclick=()=>{
-  if(!auth.currentUser) return alert("Giriş yapmalısın!");
-
+  if(!auth.currentUser){
+  alert("Konu görmek için giriş yapmalısın");
+  return;
+    
   push(ref(db,"topics/"+currentTopicId+"/replies"),{
     text: replyText.value,
     author: auth.currentUser.email
