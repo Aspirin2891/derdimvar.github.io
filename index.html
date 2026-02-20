@@ -100,6 +100,54 @@ footer {
 <footer>
 © 2026 DV Forum - Tüm Hakları Saklıdır
 </footer>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
 
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// BURAYA KENDİ FIREBASE BİLGİNİ YAPIŞTIR
+const firebaseConfig = {
+  apiKey: "AIzaSyAllhg1GM46bF9KKGv2t20uBb4xMSaEMnQ",
+  authDomain: "derdimvar-c0642.firebaseapp.com",
+  projectId: "derdimvar-c0642",
+  storageBucket: "derdimvar-c0642.firebasestorage.app",
+  messagingSenderId: "113627224046",
+  appId: "1:113627224046:web:1aae2416c21916d1b560ff",
+  measurementId: "G-0L4L6Q8KGH"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// KAYIT
+window.register = function() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  createUserWithEmailAndPassword(auth, email, password)
+    .then(() => alert("Kayıt başarılı!"))
+    .catch(error => alert(error.message));
+}
+
+// GİRİŞ
+window.login = function() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => alert("Giriş başarılı!"))
+    .catch(error => alert(error.message));
+}
+
+// ÇIKIŞ
+window.logout = function() {
+  signOut(auth).then(() => alert("Çıkış yapıldı"));
+}
+</script>
+  
 </body>
 </html>
