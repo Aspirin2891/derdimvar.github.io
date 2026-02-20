@@ -208,9 +208,22 @@ function renderTopics() {
 }
 
 // 🔥 Her veri değiştiğinde cache güncellenir
-onValue(ref(db, "topics"), (snapshot) => {
-  topicsCache = snapshot.val() || {};
-  renderTopics(); // ekranda hangi kategori açıksa ona göre çiz
+onValue(ref(db,"categories"), snapshot=>{
+  const data = snapshot.val();
+  categories.innerHTML = "";
+
+  if(!data){
+    categories.innerHTML = "<div class='card'>Henüz kategori yok</div>";
+    return;
+  }
+
+  for(let id in data){
+    categories.innerHTML += `
+      <div class="card" onclick="openCategory('${id}','${data[id].name}')">
+        ${data[id].name}
+      </div>
+    `;
+  }
 });
 
 // 🔥 Tıklamayı inline onclick yerine event delegation ile yakalayalım (daha sağlam)
