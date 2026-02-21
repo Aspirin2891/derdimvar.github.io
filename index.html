@@ -40,6 +40,21 @@
 
 <div class="container">
 
+  <!-- PROFİL SAYFASI -->
+  <div id="profileSection" class="hidden">
+
+  <button onclick="backFromProfile()">← Geri</button>
+
+  <h2 id="profileUsername"></h2>
+  <p id="profileEmail"></p>
+
+  <h3>Açtığı Konular</h3>
+  <div id="profileTopics"></div>
+
+  <h3>Yazdığı Cevaplar</h3>
+  <div id="profileReplies"></div>
+
+</div>
   <!-- AUTH -->
   <div id="authBox" class="card hidden">
     <h3 id="authTitle">Giriş Yap</h3>
@@ -158,7 +173,8 @@ let currentCategory = null;
 let currentTopicId = null;
 let topicsCache = {};
 let currentUsername = "";
-
+let currentProfileUid = null;
+  
 /* Auth UI */
 window.hideAuth = () => authBox.classList.add("hidden");
 
@@ -307,7 +323,16 @@ function renderTopics() {
     topicsList.innerHTML += `
       <div class="topic" data-id="${id}">
         <strong>${t.title || ""}</strong><br>
-        <small>${t.author || ""}</small><br>
+       <small>
+  ${
+    t.authorUid
+      ? `<span style="color:#0066cc;cursor:pointer;"
+          onclick="openProfile('${t.authorUid}')">
+          ${t.author}
+         </span>`
+      : t.author
+  }
+</small>
         <span class="muted">${date} • ${count} cevap</span>
       </div>
     `;
@@ -412,6 +437,87 @@ window.backToTopics = function () {
   topicDetail.classList.add("hidden");
   topicsSection.classList.remove("hidden");
   renderTopics(); // sayaç güncellensin
+};
+window.openProfile = function(uid){
+
+  currentProfileUid = uid;
+
+  topicsSection.classList.add("hidden");
+  topicDetail.classList.add("hidden");
+  categoriesSection.classList.add("hidden");
+
+  profileSection.classList.remove("hidden");
+
+  loadProfile(uid);
+};
+  function loadProfile(uid){
+
+  // Kullanıcı bilgisi
+  onValue(ref(db,"users/"+uid), snap=>{
+    const u = snap.val();
+
+    if(!u) return;
+
+    profileUsername.innerText = u.username;
+    profileEmail.innerText = u.email;
+  });
+
+
+  // Konuları
+  onValue(ref(db,"topics"), snap=>{
+    const data = snap.val();
+
+    profileTopics.innerHTML = "";
+
+    if(!data) return;
+
+    for(let id in data){
+      if(data[id].authorUid === uid){
+
+        profileTopics.innerHTML += `
+          <div class="topic">
+            ${data[id].title}
+          </div>
+        `;
+      }
+    }
+  });
+
+
+  // Cevapları
+  onValue(ref(db,"topics"), snap=>{
+    const data = snap.val();
+
+    profileReplies.innerHTML="";
+
+    if(!data) return;
+
+    for(let id in data){
+
+      const replies = data[id].replies;
+
+      if(!replies) continue;
+
+      for(let r in replies){
+
+        if(replies[r].authorUid === uid){
+
+          profileReplies.innerHTML += `
+            <div class="reply">
+              ${replies[r].text}
+            </div>
+          `;
+        }
+      }
+    }
+  });
+
+}
+  window.backFromProfile = function(){
+
+  profileSection.classList.add("hidden");
+  categoriesSection.classList.remove("hidden");
+
 };
 </script>
 
