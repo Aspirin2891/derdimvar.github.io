@@ -1,102 +1,113 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Dertleş ve Derman Bul</title>
-
 <style>
-body { margin:0; font-family:Arial; background:#f4f6f9; }
-header { background:linear-gradient(90deg,#ff7a00,#0066cc); color:white; padding:25px; text-align:center; }
-nav { background:white; padding:15px 30px; display:flex; justify-content:space-between; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-.container { max-width:1000px; margin:30px auto; padding:20px; }
-.card { background:white; padding:20px; margin-bottom:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); cursor:pointer;}
-.card:hover { background:#f2f2f2; }
-button { background:#0066cc; color:white; padding:10px 15px; border:none; border-radius:6px; cursor:pointer;}
-button:hover{ background:#004999;}
-input,textarea{ width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;}
-.topic{ padding:10px; border-bottom:1px solid #eee; cursor:pointer;}
-.topic:hover{ background:#f2f2f2;}
-.reply{ padding:8px; border-bottom:1px solid #eee;}
-.hidden{ display:none;}
+  body { margin:0; font-family:Arial; background:#f4f6f9; }
+  header { background:linear-gradient(90deg,#ff7a00,#0066cc); color:white; padding:25px; text-align:center; }
+  nav { background:white; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+  .container { max-width:1000px; margin:30px auto; padding:20px; }
+  .card { background:white; padding:20px; margin-bottom:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
+  .card.clickable { cursor:pointer; }
+  .card.clickable:hover { background:#f2f2f2; }
+  button { background:#0066cc; color:white; padding:10px 15px; border:none; border-radius:6px; cursor:pointer;}
+  button:hover{ background:#004999;}
+  input,textarea{ width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;}
+  .topic{ padding:10px; border-bottom:1px solid #eee; cursor:pointer;}
+  .topic:hover{ background:#f2f2f2;}
+  .reply{ padding:8px; border-bottom:1px solid #eee;}
+  .hidden{ display:none;}
+  .row { display:flex; gap:10px; align-items:center; }
+  .row > * { flex:1; }
+  .muted { color:#666; font-size:13px; }
 </style>
 </head>
 <body>
 
 <header>
-<h1>Dertleş ve Derman Bul</h1>
+  <h1>Dertleş ve Derman Bul</h1>
+  <div class="muted">Samimi • Güvenilir • Çözüm Odaklı</div>
 </header>
 
 <nav>
-  <div id="userArea"></div>
-  <div id="authButtons">
+  <div id="userArea">Giriş yapılmadı</div>
+  <div id="authButtons" class="row" style="flex:0 0 auto;">
     <button onclick="showLogin()">Giriş</button>
     <button onclick="showRegister()">Kayıt Ol</button>
   </div>
 </nav>
 
 <div class="container">
-<div id="authBox" class="card hidden">
-  <h3 id="authTitle">Giriş Yap</h3>
-  <input type="email" id="authEmail" placeholder="Email">
-  <input type="password" id="authPassword" placeholder="Şifre">
-  <button id="authAction">Devam Et</button>
-</div>
-<div id="categoriesSection">
-<h2>Kategoriler</h2>
-<div id="categories"></div>
-</div>
 
-<div id="topicsSection" class="hidden">
-<button onclick="goBack()">← Geri</button>
-<h2 id="categoryTitle"></h2>
+  <!-- AUTH BOX -->
+  <div id="authBox" class="card hidden">
+    <h3 id="authTitle">Giriş Yap</h3>
 
-<div id="topicsList"></div>
+    <!-- SADECE KAYITTA GÖSTER -->
+    <input type="text" id="authUsername" placeholder="Kullanıcı adı (örn: Ali34)" class="hidden" />
 
-<div id="createTopicBox" style="margin-top:20px;">
-<h3>Yeni Konu Aç</h3>
-<input type="text" id="topicTitle" placeholder="Konu başlığı">
-<textarea id="topicContent" placeholder="Detaylı anlat..."></textarea>
-<button id="createTopic">Konu Oluştur</button>
-</div>
-</div>
+    <input type="email" id="authEmail" placeholder="Email" />
+    <input type="password" id="authPassword" placeholder="Şifre (en az 6 karakter)" />
+    <button id="authAction">Devam Et</button>
+    <button style="background:#888; margin-left:8px;" onclick="hideAuth()">Kapat</button>
+  </div>
 
-<div id="topicDetail" class="hidden">
-<button onclick="backToTopics()">← Geri</button>
-<h2 id="detailTitle"></h2>
-<p id="detailContent"></p>
+  <!-- CATEGORIES -->
+  <div id="categoriesSection">
+    <h2>Kategoriler</h2>
+    <div id="categories"></div>
+  </div>
 
-<h3>Yanıtlar</h3>
-<div id="replies"></div>
+  <!-- TOPICS -->
+  <div id="topicsSection" class="hidden">
+    <button onclick="goBack()">← Geri</button>
+    <h2 id="categoryTitle"></h2>
+    <div id="topicsList"></div>
 
-<textarea id="replyText" placeholder="Cevap yaz..."></textarea>
-<button id="sendReply">Yanıt Gönder</button>
-</div>
+    <div id="createTopicBox" class="card" style="margin-top:20px;">
+      <h3>Yeni Konu Aç</h3>
+      <input type="text" id="topicTitle" placeholder="Konu başlığı" />
+      <textarea id="topicContent" placeholder="Detaylı anlat..."></textarea>
+      <button id="createTopic">Konu Oluştur</button>
+    </div>
+  </div>
+
+  <!-- TOPIC DETAIL -->
+  <div id="topicDetail" class="hidden">
+    <button onclick="backToTopics()">← Geri</button>
+    <h2 id="detailTitle"></h2>
+    <p id="detailContent"></p>
+
+    <h3>Yanıtlar</h3>
+    <div id="replies"></div>
+
+    <textarea id="replyText" placeholder="Cevap yaz..."></textarea>
+    <button id="sendReply">Yanıt Gönder</button>
+  </div>
 
 </div>
 
 <script type="module">
-
-/* 🔹 1️⃣ TÜM IMPORTLAR EN ÜSTTE */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-
-import { 
-  getAuth, 
-  onAuthStateChanged, 
+import {
+  getAuth,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-import { 
+import {
   getDatabase,
   ref,
-  set,
   onValue,
-  push
+  push,
+  set,
+  get
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* 🔹 2️⃣ FIREBASE CONFIG */
+/* Firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyAllhg1GM46bF9KKGv2t20uBb4xMSaEMnQ",
   authDomain: "derdimvar-c0642.firebaseapp.com",
@@ -107,90 +118,175 @@ const firebaseConfig = {
   appId: "1:113627224046:web:1aae2416c21916d1b560ff"
 };
 
- 
-/* 🔹 3️⃣ APP BAŞLAT */
 const app = initializeApp(firebaseConfig);
-
-/* 🔹 4️⃣ AUTH VE DATABASE OLUŞTUR */
 const auth = getAuth(app);
 const db = getDatabase(app);
-// DOM
-const elCategoriesSection = document.getElementById("categoriesSection");
-const elTopicsSection = document.getElementById("topicsSection");
-const elTopicDetail = document.getElementById("topicDetail");
 
-const elCategoryTitle = document.getElementById("categoryTitle");
-const elTopicsList = document.getElementById("topicsList");
+/* DOM */
+const userArea = document.getElementById("userArea");
+const authButtons = document.getElementById("authButtons");
 
-const elDetailTitle = document.getElementById("detailTitle");
-const elDetailContent = document.getElementById("detailContent");
-const elReplies = document.getElementById("replies");
+const authBox = document.getElementById("authBox");
+const authTitle = document.getElementById("authTitle");
+const authUsername = document.getElementById("authUsername");
+const authEmail = document.getElementById("authEmail");
+const authPassword = document.getElementById("authPassword");
+const authAction = document.getElementById("authAction");
 
-// State
+const categoriesSection = document.getElementById("categoriesSection");
+const topicsSection = document.getElementById("topicsSection");
+const topicDetail = document.getElementById("topicDetail");
+
+const categories = document.getElementById("categories");
+const categoryTitle = document.getElementById("categoryTitle");
+const topicsList = document.getElementById("topicsList");
+
+const topicTitle = document.getElementById("topicTitle");
+const topicContent = document.getElementById("topicContent");
+const createTopic = document.getElementById("createTopic");
+
+const detailTitle = document.getElementById("detailTitle");
+const detailContent = document.getElementById("detailContent");
+const replies = document.getElementById("replies");
+const replyText = document.getElementById("replyText");
+const sendReply = document.getElementById("sendReply");
+
+/* State */
+let authMode = "login";
 let currentCategory = null;
 let currentTopicId = null;
-let topicsCache = {}; // 🔥 konuları burada tutacağız
+let topicsCache = {};
+let currentUsername = ""; // ✅ artık yazar bu
 
-/* 🔹 5️⃣ AUTH UI KODLARI */
-let authMode = "login";
+/* Auth UI */
+window.hideAuth = () => authBox.classList.add("hidden");
 
-window.showLogin = function(){
+window.showLogin = function () {
   authMode = "login";
   authTitle.innerText = "Giriş Yap";
+  authUsername.classList.add("hidden"); // login’de gizle
   authBox.classList.remove("hidden");
 };
 
-window.showRegister = function(){
+window.showRegister = function () {
   authMode = "register";
   authTitle.innerText = "Kayıt Ol";
+  authUsername.classList.remove("hidden"); // register’da göster
   authBox.classList.remove("hidden");
 };
 
 authAction.onclick = async () => {
-  const email = authEmail.value;
+  const email = authEmail.value.trim();
   const password = authPassword.value;
 
-  try{
-    if(authMode === "login"){
+  try {
+    if (authMode === "login") {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Giriş başarılı!");
     } else {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const username = authUsername.value.trim();
+      if (!username) return alert("Kullanıcı adı boş olamaz!");
+      if (password.length < 6) return alert("Şifre en az 6 karakter olmalı.");
+
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+
+      // ✅ users/{uid} profili yaz
+      await set(ref(db, "users/" + userCred.user.uid), {
+        username,
+        email,
+        createdAt: Date.now()
+      });
+
       alert("Kayıt başarılı!");
     }
 
     authBox.classList.add("hidden");
-    authEmail.value="";
-    authPassword.value="";
-  }catch(error){
-    alert("Hata: " + error.message);
+    authEmail.value = "";
+    authPassword.value = "";
+    authUsername.value = "";
+  } catch (e) {
+    alert("Hata: " + e.message);
   }
 };
 
-onAuthStateChanged(auth, user => {
-  if(user){
-    userArea.innerHTML = `
-      ${user.email}
-      <button onclick="logout()">Çıkış</button>
-    `;
-    authButtons.style.display="none";
-  }else{
-    userArea.innerText="Giriş yapılmadı";
-    authButtons.style.display="block";
-  }
-});
-
-window.logout = async function(){
+window.logout = async function () {
   await signOut(auth);
   alert("Çıkış yapıldı");
 };
 
-/* İlk açılışta kategorileri oluştur */
+/* Auth state -> username çek */
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    // users/{uid} içinden username çek
+    try {
+      const snap = await get(ref(db, "users/" + user.uid));
+      const profile = snap.val();
+      currentUsername = profile?.username || user.email;
+    } catch {
+      currentUsername = user.email;
+    }
 
-/* Kategorileri Listele */
+    userArea.innerHTML = `${currentUsername} <button onclick="logout()">Çıkış</button>`;
+    authButtons.style.display = "none";
+  } else {
+    currentUsername = "";
+    userArea.innerText = "Giriş yapılmadı";
+    authButtons.style.display = "block";
+  }
+});
+
+/* Categories list */
+onValue(ref(db, "categories"), (snapshot) => {
+  const data = snapshot.val();
+  categories.innerHTML = "";
+
+  if (!data) {
+    categories.innerHTML = "<div class='card'>Henüz kategori yok</div>";
+    return;
+  }
+
+  for (const id in data) {
+    categories.innerHTML += `
+      <div class="card clickable" data-cat="${id}" data-name="${data[id].name}">
+        ${data[id].name}
+      </div>
+    `;
+  }
+});
+
+/* Category click */
+categories.addEventListener("click", (e) => {
+  const card = e.target.closest(".card");
+  if (!card) return;
+  const id = card.getAttribute("data-cat");
+  const name = card.getAttribute("data-name");
+  window.openCategory(id, name);
+});
+
+window.openCategory = function (id, name) {
+  if (!auth.currentUser) {
+    alert("Kategoriyi görmek için giriş yapmalısın!");
+    return;
+  }
+
+  currentCategory = id;
+  categoryTitle.innerText = name;
+
+  categoriesSection.classList.add("hidden");
+  topicsSection.classList.remove("hidden");
+  topicDetail.classList.add("hidden");
+
+  renderTopics();
+};
+
+/* Topics cache (hafif) */
+onValue(ref(db, "topics"), (snapshot) => {
+  topicsCache = snapshot.val() || {};
+  if (!topicsSection.classList.contains("hidden")) renderTopics();
+});
+
 function renderTopics() {
-  elTopicsList.innerHTML = "";
-
+  topicsList.innerHTML = "";
   const ids = Object.keys(topicsCache || {});
   if (!currentCategory || ids.length === 0) return;
 
@@ -198,137 +294,102 @@ function renderTopics() {
     const t = topicsCache[id];
     if (t.category !== currentCategory) continue;
 
-    elTopicsList.innerHTML += `
+    topicsList.innerHTML += `
       <div class="topic" data-id="${id}">
         <strong>${t.title}</strong><br>
-        <small>${t.author}</small>
+        <small>${t.author || ""}</small>
       </div>
     `;
   }
 }
 
-// 🔥 Her veri değiştiğinde cache güncellenir
-onValue(ref(db,"categories"), snapshot=>{
-  const data = snapshot.val();
-  categories.innerHTML = "";
-
-  if(!data){
-    categories.innerHTML = "<div class='card'>Henüz kategori yok</div>";
-    return;
-  }
-
-  for(let id in data){
-    categories.innerHTML += `
-      <div class="card" onclick="openCategory('${id}','${data[id].name}')">
-        ${data[id].name}
-      </div>
-    `;
-  }
-});
-
-// 🔥 Tıklamayı inline onclick yerine event delegation ile yakalayalım (daha sağlam)
-elTopicsList.addEventListener("click", (e) => {
-  const box = e.target.closest(".topic");
-  if (!box) return;
-  const id = box.getAttribute("data-id");
+/* Topic click */
+topicsList.addEventListener("click", (e) => {
+  const t = e.target.closest(".topic");
+  if (!t) return;
+  const id = t.getAttribute("data-id");
   window.openTopic(id);
 });
 
-window.openCategory = function(id, name) {
-  if (!auth.currentUser) {
-    alert("Kategoriyi görmek için giriş yapmalısın!");
-    return;
-  }
+/* Topic detail (tek sefer okuma - kasmasın) */
+window.openTopic = async function (id) {
+  currentTopicId = id;
 
-  currentCategory = id;
-  elCategoryTitle.innerText = name;
+  topicsSection.classList.add("hidden");
+  topicDetail.classList.remove("hidden");
 
-  elCategoriesSection.classList.add("hidden");
-  elTopicsSection.classList.remove("hidden");
+  const snap = await get(ref(db, "topics/" + id));
+  const data = snap.val();
+  if (!data) return;
 
-  renderTopics(); // 🔥 kategori değiştiği an listeyi yenile
-};
-  /* Konu oluştur */
-createTopic.onclick=()=>{
-  if(!auth.currentUser) return alert("Giriş yapmalısın!");
+  detailTitle.innerText = data.title || "";
+  detailContent.innerText = data.content || "";
 
-  push(ref(db,"topics"),{
-    category: currentCategory,
-    title: topicTitle.value,
-    content: topicContent.value,
-    author: auth.currentUser.email
-  });
-
-  topicTitle.value="";
-  topicContent.value="";
-};
-
-/* Konuları Listele */
-onValue(ref(db,"topics"), snapshot=>{
-  const data = snapshot.val();
-  topicsList.innerHTML="";
-  if(!data) return;
-
-  for(let id in data){
-    if(data[id].category===currentCategory){
-      topicsList.innerHTML+=`
-        <div class="topic" onclick="openTopic('${id}')">
-          <strong>${data[id].title}</strong><br>
-          <small>${data[id].author}</small>
+  replies.innerHTML = "";
+  if (data.replies) {
+    for (const r in data.replies) {
+      replies.innerHTML += `
+        <div class="reply">
+          <strong>${data.replies[r].author || ""}</strong><br>
+          ${data.replies[r].text || ""}
         </div>
       `;
     }
   }
-});
-
-window.openTopic=function(id){
-  currentTopicId=id;
-  topicsSection.classList.add("hidden");
-  topicDetail.classList.remove("hidden");
-
-  onValue(ref(db,"topics/"+id), snapshot=>{
-    const data=snapshot.val();
-    detailTitle.innerText=data.title;
-    detailContent.innerText=data.content;
-    replies.innerHTML="";
-    if(data.replies){
-      for(let r in data.replies){
-        replies.innerHTML+=`
-          <div class="reply">
-            <strong>${data.replies[r].author}</strong><br>
-            ${data.replies[r].text}
-          </div>
-        `;
-      }
-    }
-  });
 };
 
-sendReply.onclick = () => {
+/* Create topic */
+createTopic.onclick = () => {
+  if (!auth.currentUser) return alert("Giriş yapmalısın!");
+  if (!currentCategory) return alert("Önce kategori seç!");
 
-  if(!auth.currentUser){
-    alert("Yanıt yazmak için giriş yapmalısın!");
-    return;
-  }
+  const title = topicTitle.value.trim();
+  const content = topicContent.value.trim();
+  if (!title) return alert("Konu başlığı boş olamaz!");
 
-  push(ref(db,"topics/"+currentTopicId+"/replies"),{
-    text: replyText.value,
-    author: auth.currentUser.email
+  push(ref(db, "topics"), {
+    category: currentCategory,
+    title,
+    content,
+    author: currentUsername || auth.currentUser.email, // ✅ username
+    createdAt: Date.now()
   });
 
-  replyText.value="";
+  topicTitle.value = "";
+  topicContent.value = "";
 };
 
-window.goBack=function(){
+/* Send reply */
+sendReply.onclick = async () => {
+  if (!auth.currentUser) return alert("Yanıt yazmak için giriş yapmalısın!");
+  if (!currentTopicId) return;
+
+  const text = replyText.value.trim();
+  if (!text) return alert("Yanıt boş olamaz!");
+
+  await push(ref(db, "topics/" + currentTopicId + "/replies"), {
+    text,
+    author: currentUsername || auth.currentUser.email, // ✅ username
+    createdAt: Date.now()
+  });
+
+  replyText.value = "";
+  // Detayı yenile (tek sefer tekrar çek)
+  window.openTopic(currentTopicId);
+};
+
+/* Navigation */
+window.goBack = function () {
   topicsSection.classList.add("hidden");
+  topicDetail.classList.add("hidden");
   categoriesSection.classList.remove("hidden");
+  currentCategory = null;
 };
 
-window.backToTopics=function(){
+window.backToTopics = function () {
   topicDetail.classList.add("hidden");
   topicsSection.classList.remove("hidden");
 };
-
 </script>
 
 </body>
