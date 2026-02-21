@@ -15,20 +15,19 @@
   button { background:#0066cc; color:white; padding:10px 15px; border:none; border-radius:6px; cursor:pointer;}
   button:hover{ background:#004999;}
   input,textarea{ width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;}
-  .topic{ padding:10px; border-bottom:1px solid #eee; cursor:pointer;}
+  .topic{ padding:12px; border-bottom:1px solid #eee; cursor:pointer;}
   .topic:hover{ background:#f2f2f2;}
   .reply{ padding:8px; border-bottom:1px solid #eee;}
   .hidden{ display:none;}
+  .muted { color:#666; font-size:12px; }
   .row { display:flex; gap:10px; align-items:center; }
-  .row > * { flex:1; }
-  .muted { color:#666; font-size:13px; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Dertleş ve Derman Bul</h1>
-  <div class="muted">Samimi • Güvenilir • Çözüm Odaklı</div>
+  <div class="muted" style="color:#fff; opacity:.9;">Samimi • Güvenilir • Çözüm Odaklı</div>
 </header>
 
 <nav>
@@ -41,17 +40,18 @@
 
 <div class="container">
 
-  <!-- AUTH BOX -->
+  <!-- AUTH -->
   <div id="authBox" class="card hidden">
     <h3 id="authTitle">Giriş Yap</h3>
 
-    <!-- SADECE KAYITTA GÖSTER -->
     <input type="text" id="authUsername" placeholder="Kullanıcı adı (örn: Ali34)" class="hidden" />
 
     <input type="email" id="authEmail" placeholder="Email" />
     <input type="password" id="authPassword" placeholder="Şifre (en az 6 karakter)" />
-    <button id="authAction">Devam Et</button>
-    <button style="background:#888; margin-left:8px;" onclick="hideAuth()">Kapat</button>
+    <div class="row">
+      <button id="authAction">Devam Et</button>
+      <button style="background:#888;" onclick="hideAuth()">Kapat</button>
+    </div>
   </div>
 
   <!-- CATEGORIES -->
@@ -90,24 +90,22 @@
 </div>
 
 <script type="module">
-let currentUsername = "";
-import { getDatabase, ref, set, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut,
-  get
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getDatabase,
   ref,
   onValue,
   push,
   set,
-  get
+  get,
+  update
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 /* Firebase */
@@ -159,7 +157,7 @@ let authMode = "login";
 let currentCategory = null;
 let currentTopicId = null;
 let topicsCache = {};
-let currentUsername = ""; // ✅ artık yazar bu
+let currentUsername = "";
 
 /* Auth UI */
 window.hideAuth = () => authBox.classList.add("hidden");
@@ -167,14 +165,14 @@ window.hideAuth = () => authBox.classList.add("hidden");
 window.showLogin = function () {
   authMode = "login";
   authTitle.innerText = "Giriş Yap";
-  authUsername.classList.add("hidden"); // login’de gizle
+  authUsername.classList.add("hidden");
   authBox.classList.remove("hidden");
 };
 
 window.showRegister = function () {
   authMode = "register";
   authTitle.innerText = "Kayıt Ol";
-  authUsername.classList.remove("hidden"); // register’da göster
+  authUsername.classList.remove("hidden");
   authBox.classList.remove("hidden");
 };
 
@@ -193,7 +191,6 @@ authAction.onclick = async () => {
 
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
 
-      // ✅ users/{uid} profili yaz
       await set(ref(db, "users/" + userCred.user.uid), {
         username,
         email,
@@ -220,14 +217,15 @@ window.logout = async function () {
 /* Auth state -> username çek */
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    const snap = await get(ref(db, "users/" + user.uid));
-    const profile = snap.val();
-    currentUsername = profile?.username || user.email;
+    try {
+      const snap = await get(ref(db, "users/" + user.uid));
+      const profile = snap.val();
+      currentUsername = profile?.username || user.email;
+    } catch {
+      currentUsername = user.email;
+    }
 
-    userArea.innerHTML = `
-      ${currentUsername}
-      <button onclick="logout()">Çıkış</button>
-    `;
+    userArea.innerHTML = `${currentUsername} <button onclick="logout()">Çıkış</button>`;
     authButtons.style.display = "none";
   } else {
     currentUsername = "";
@@ -235,6 +233,7 @@ onAuthStateChanged(auth, async (user) => {
     authButtons.style.display = "block";
   }
 });
+
 /* Categories list */
 onValue(ref(db, "categories"), (snapshot) => {
   const data = snapshot.val();
@@ -279,11 +278,19 @@ window.openCategory = function (id, name) {
   renderTopics();
 };
 
-/* Topics cache (hafif) */
+/* Topics cache */
 onValue(ref(db, "topics"), (snapshot) => {
   topicsCache = snapshot.val() || {};
   if (!topicsSection.classList.contains("hidden")) renderTopics();
 });
+
+function formatDateTR(ms) {
+  try {
+    return new Date(ms).toLocaleDateString("tr-TR");
+  } catch {
+    return "";
+  }
+}
 
 function renderTopics() {
   topicsList.innerHTML = "";
@@ -294,10 +301,14 @@ function renderTopics() {
     const t = topicsCache[id];
     if (t.category !== currentCategory) continue;
 
+    const date = t.createdAt ? formatDateTR(t.createdAt) : "";
+    const count = t.repliesCount || 0;
+
     topicsList.innerHTML += `
       <div class="topic" data-id="${id}">
-        <strong>${t.title}</strong><br>
-        <small>${t.author || ""}</small>
+        <strong>${t.title || ""}</strong><br>
+        <small>${t.author || ""}</small><br>
+        <span class="muted">${date} • ${count} cevap</span>
       </div>
     `;
   }
@@ -311,7 +322,7 @@ topicsList.addEventListener("click", (e) => {
   window.openTopic(id);
 });
 
-/* Topic detail (tek sefer okuma - kasmasın) */
+/* Topic detail (tek sefer okuma) */
 window.openTopic = async function (id) {
   currentTopicId = id;
 
@@ -339,7 +350,7 @@ window.openTopic = async function (id) {
 };
 
 /* Create topic */
-createTopic.onclick = () => {
+createTopic.onclick = async () => {
   if (!auth.currentUser) return alert("Giriş yapmalısın!");
   if (!currentCategory) return alert("Önce kategori seç!");
 
@@ -347,20 +358,21 @@ createTopic.onclick = () => {
   const content = topicContent.value.trim();
   if (!title) return alert("Konu başlığı boş olamaz!");
 
- push(ref(db,"topics"),{
-  category: currentCategory,
-  title: topicTitle.value.trim(),
-  content: topicContent.value.trim(),
-  author: currentUsername || auth.currentUser.email,
-  authorUid: auth.currentUser.uid,
-  createdAt: Date.now()
-});
+  await push(ref(db, "topics"), {
+    category: currentCategory,
+    title,
+    content,
+    author: currentUsername || auth.currentUser.email,
+    authorUid: auth.currentUser.uid,
+    createdAt: Date.now(),
+    repliesCount: 0
+  });
 
   topicTitle.value = "";
   topicContent.value = "";
 };
 
-/* Send reply */
+/* Send reply + sayaç */
 sendReply.onclick = async () => {
   if (!auth.currentUser) return alert("Yanıt yazmak için giriş yapmalısın!");
   if (!currentTopicId) return;
@@ -368,14 +380,23 @@ sendReply.onclick = async () => {
   const text = replyText.value.trim();
   if (!text) return alert("Yanıt boş olamaz!");
 
-  await ppush(ref(db,"topics/"+currentTopicId+"/replies"),{
-  text: replyText.value.trim(),
-  author: currentUsername || auth.currentUser.email,
-  authorUid: auth.currentUser.uid,
-  createdAt: Date.now()
-});
+  await push(ref(db, "topics/" + currentTopicId + "/replies"), {
+    text,
+    author: currentUsername || auth.currentUser.email,
+    authorUid: auth.currentUser.uid,
+    createdAt: Date.now()
+  });
+
+  // repliesCount +1
+  const topicRef = ref(db, "topics/" + currentTopicId);
+  const snap = await get(topicRef);
+  const topicData = snap.val() || {};
+  const newCount = (topicData.repliesCount || 0) + 1;
+  await update(topicRef, { repliesCount: newCount });
+
   replyText.value = "";
-  // Detayı yenile (tek sefer tekrar çek)
+
+  // Detayı tazele
   window.openTopic(currentTopicId);
 };
 
