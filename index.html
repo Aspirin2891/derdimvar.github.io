@@ -90,14 +90,17 @@
 </div>
 
 <script type="module">
+let currentUsername = "";
+import { getDatabase, ref, set, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  signOut,
+  get
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getDatabase,
   ref,
@@ -217,16 +220,14 @@ window.logout = async function () {
 /* Auth state -> username çek */
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    // users/{uid} içinden username çek
-    try {
-      const snap = await get(ref(db, "users/" + user.uid));
-      const profile = snap.val();
-      currentUsername = profile?.username || user.email;
-    } catch {
-      currentUsername = user.email;
-    }
+    const snap = await get(ref(db, "users/" + user.uid));
+    const profile = snap.val();
+    currentUsername = profile?.username || user.email;
 
-    userArea.innerHTML = `${currentUsername} <button onclick="logout()">Çıkış</button>`;
+    userArea.innerHTML = `
+      ${currentUsername}
+      <button onclick="logout()">Çıkış</button>
+    `;
     authButtons.style.display = "none";
   } else {
     currentUsername = "";
@@ -234,7 +235,6 @@ onAuthStateChanged(auth, async (user) => {
     authButtons.style.display = "block";
   }
 });
-
 /* Categories list */
 onValue(ref(db, "categories"), (snapshot) => {
   const data = snapshot.val();
@@ -347,13 +347,14 @@ createTopic.onclick = () => {
   const content = topicContent.value.trim();
   if (!title) return alert("Konu başlığı boş olamaz!");
 
-  push(ref(db, "topics"), {
-    category: currentCategory,
-    title,
-    content,
-    author: currentUsername || auth.currentUser.email, // ✅ username
-    createdAt: Date.now()
-  });
+ push(ref(db,"topics"),{
+  category: currentCategory,
+  title: topicTitle.value.trim(),
+  content: topicContent.value.trim(),
+  author: currentUsername || auth.currentUser.email,
+  authorUid: auth.currentUser.uid,
+  createdAt: Date.now()
+});
 
   topicTitle.value = "";
   topicContent.value = "";
@@ -367,12 +368,12 @@ sendReply.onclick = async () => {
   const text = replyText.value.trim();
   if (!text) return alert("Yanıt boş olamaz!");
 
-  await push(ref(db, "topics/" + currentTopicId + "/replies"), {
-    text,
-    author: currentUsername || auth.currentUser.email, // ✅ username
-    createdAt: Date.now()
-  });
-
+  await ppush(ref(db,"topics/"+currentTopicId+"/replies"),{
+  text: replyText.value.trim(),
+  author: currentUsername || auth.currentUser.email,
+  authorUid: auth.currentUser.uid,
+  createdAt: Date.now()
+});
   replyText.value = "";
   // Detayı yenile (tek sefer tekrar çek)
   window.openTopic(currentTopicId);
